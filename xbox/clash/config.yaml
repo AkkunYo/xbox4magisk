@@ -1,0 +1,175 @@
+mixed-port: 7890
+redir-port: 7891
+tproxy-port: 1536
+allow-lan: true
+mode: rule
+geodata-mode: true
+unified-delay: true
+log-level: info
+ipv6: false
+external-controller: 0.0.0.0:9090
+external-ui: ./dashboard/Yacd
+secret: ""
+tcp-concurrent: true
+enable-process: true
+find-process-mode: strict
+global-client-fingerprint: chrome
+
+geox-url:
+  geoip: "https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat"
+  geosite: "https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+sniffer:
+  enable: true
+  sniff:
+    TLS:
+      ports: [443, 8443]
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+
+tun:
+  enable: false
+  device: tun0
+  stack: system
+  inet6-address: 
+  dns-hijack:
+    - 'any:53'
+    - 'tcp://any:53'
+  auto-route: true
+  auto-detect-interface: true
+
+dns:
+  enable: true
+  prefer-h3: true
+  listen: 0.0.0.0:1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 28.0.0.1/8
+  fake-ip-filter:
+    - '*'
+    - '+.lan'
+    - 'connect.rom.miui.com'
+    - 'localhost.ptlogin2.qq.com'
+    - "*.msftncsi.com"
+    - "*.msftconnecttest.com"
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  fallback:
+    - tls://1.0.0.1:853
+    - tls://dns.google:853
+    - https://doh.dns.sb/dns-query
+    - https://dns.google/dns-query
+    - https://cloudflare-dns.com/dns-query
+  fallback-filter:
+     geoip: true
+     ipcidr:
+       - 240.0.0.0/4   
+
+p: &p
+  {type: http, interval: 3600, health-check: {enable: true, url: http://www.apple.com/library/test/success.html, interval: 300}}
+
+u: &u
+  use:
+    - 订阅地址0
+proxy-providers:
+  订阅地址0:
+    <<: *p 
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/AkkunYo/HysteriaNode/main/hysteriaNode.txt"
+    path: ./proxy_providers/hysteriaNode.txt_0.yaml
+proxy-groups:
+  - {name: 🎯 总模式, type: select, proxies: [🚀 节点选择,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 🚀 节点选择, type: select, proxies: [♻️ 自动切换,🌎 全球直连], <<: *u}
+  - {name: ♻️ 自动切换, <<: *u, tolerance: 2, type: url-test}
+  - {name: ♻️ 手动切换1, type: select, proxies: [🚀 节点选择,🌎 全球直连], <<: *u}
+  - {name: ♻️ 手动切换2, type: select, proxies: [🚀 节点选择,🌎 全球直连], <<: *u}
+  - {name: ♻️ 手动切换3, type: select, proxies: [🚀 节点选择,🌎 全球直连], <<: *u}
+  - {name: 🤖 OpenAI, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 📲 电报信息, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 🎬 油管视频, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 📹 奈飞视频, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 📢 谷歌服务, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: Ⓜ️ 微软服务, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 🍎 苹果服务, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 📸 国际抖音, type: select, proxies: [🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3,🌎 全球直连]}
+  - {name: 📷 中国抖音, type: select, proxies: [🌎 全球直连,🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3]}
+  - {name: 🎹 网易音乐, type: select, proxies: [🌎 全球直连,🎯 总模式,♻️ 自动切换,♻️ 手动切换1,♻️ 手动切换2,♻️ 手动切换3]}
+  - {name: 🛑 广告拦截, type: select, proxies: [REJECT,🌎 全球直连]}
+  - {name: 🐋 漏网之鱼, type: select, proxies: [🎯 总模式,🌎 全球直连]}
+  - {name: 🌎 全球直连, type: select, proxies: [DIRECT]}
+  
+rule-providers:
+  Telegram:
+    type: http
+    behavior: classical
+    format: yaml
+    path: ./rule/Telegram.yaml
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Telegram.yaml"
+    interval: 86400
+  Youtube:
+    type: http
+    behavior: classical
+    format: yaml
+    path: ./rule/Youtube.yaml
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Youtube.yaml"
+    interval: 86400
+  Google:
+    type: http
+    behavior: classical
+    format: yaml
+    path: ./rule/Google.yaml
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Google.yaml"
+    interval: 86400
+  Microsoft:
+    type: http
+    behavior: classical
+    format: yaml
+    path: ./rule/Microsoft.yaml
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Microsoft.yaml"
+    interval: 86400
+  Apple:
+    type: http
+    behavior: classical
+    format: yaml
+    path: ./rule/Apple.yaml
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Apple.yaml"
+    interval: 86400
+  Openai:
+    type: http
+    behavior: classical
+    format: yaml
+    path: ./rule/Openai.yaml
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Openai.yaml"
+    interval: 86400
+  Netflix:
+    type: http
+    behavior: classical
+    format: yaml
+    path: ./rule/Netflix.yaml
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Netflix.yaml"
+    interval: 86400
+
+rules:
+  - AND,((PROCESS-NAME,clash),(NOT,((IN-TYPE,inner)))),REJECT
+  - PROCESS-NAME,com.zhiliaoapp.musically,📸 国际抖音
+  - PROCESS-NAME,com.ss.android.ugc.aweme,📷 中国抖音
+  - PROCESS-NAME,com.netease.cloudmusic,🎹 网易音乐
+  - RULE-SET,Youtube,🎬 油管视频
+  - RULE-SET,Netflix,📹 奈飞视频
+  - RULE-SET,Google,📢 谷歌服务
+  - RULE-SET,Apple,🍎 苹果服务
+  - RULE-SET,Microsoft,Ⓜ️ 微软服务
+  - RULE-SET,Telegram,📲 电报信息
+  - RULE-SET,Openai,🤖 OpenAI
+  - GEOSITE,category-ads-all,🛑 广告拦截
+  - DOMAIN-SUFFIX,zkyml.com,🌎 全球直连
+  - GEOSITE,CN,🌎 全球直连
+  - GEOIP,private,🌎 全球直连,no-resolve
+  - GEOIP,CN,🌎 全球直连,no-resolve
+  - MATCH,🐋 漏网之鱼

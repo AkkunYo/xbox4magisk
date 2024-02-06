@@ -1,0 +1,24 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip Source
+        run: |
+          version=$(cat module.prop | grep 'version=' | awk -F '=' '{print $2}')
+          zip -r -o -X -ll xbox4magisk_$version.zip ./ -x '.git/*' -x '.github/*' -x 'xbox.json' -x '.gitignore'
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: xbox4magisk_v*.zip
+          generate_release_notes: true

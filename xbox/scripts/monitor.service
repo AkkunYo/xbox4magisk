@@ -1,0 +1,63 @@
+#!/system/bin/sh
+
+export PATH="/data/adb/magisk:/data/adb/ksu/bin:$PATH:/data/data/com.termux/files/usr/bin"
+
+scripts=$(realpath $0)
+scripts_dir=$(dirname ${scripts})
+
+source ${scripts_dir}/box.config
+
+log() {
+  export TZ=Asia/Shanghai
+  now=$(date +"[%Y-%m-%d %H:%M:%S %Z]")
+  case $1 in
+    Info)
+      [ -t 1 ] && echo -e "\033[1;32m${now} [Info]: $2\033[0m" || echo "${now} [Info]: $2"
+      ;;
+    Warn)
+      [ -t 1 ] && echo -e "\033[1;33m${now} [Warn]: $2\033[0m" || echo "${now} [Warn]: $2"
+      ;;
+    Error)
+      [ -t 1 ] && echo -e "\033[1;31m${now} [Error]: $2\033[0m" || echo "${now} [Error]: $2"
+      ;;
+    *)
+      [ -t 1 ] && echo -e "\033[1;30m${now} [$1]: $2\033[0m" || echo "${now} [$1]: $2"
+      ;;
+  esac
+}
+
+wait_for_tun_device() {
+    until grep -q -E "tun[0-9]" /data/misc/net/rt_tables; do
+        sleep 2
+    done
+}
+
+get_tun_id() {
+    grep -E "tun[0-9]" /data/misc/net/rt_tables | awk '{print $1}' > "$tunid_file"
+    cat "$tunid_file"
+}
+
+ip_rule() {
+    ip rule "$1" from all iif "$phy_if" table "$2" pref 17998
+}
+
+check_tun_device() {
+    if ip rule | grep -q "from all iif $phy_if lookup $1"; then
+        log Warn "The tun device has been lost and is awaiting recovery."
+        return 1
+    fi
+}
+
+wait_for_tun_device
+tunid=$(get_tun_id)
+ip_rule add $tunid >> /dev/null 2>&1
+while true; do
+    if ! check_tun_device "$tunid"; then
+        ip_rule del $tunid >> /dev/null 2>&1
+        wait_for_tun_device
+        tunid=$(get_tun_id)
+        log Info "The tun device has been reacquired, new id: "$tunid
+        ip_rule add $tunid >> /dev/null 2>&1
+    fi
+    sleep 3
+done
