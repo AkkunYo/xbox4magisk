@@ -85,72 +85,86 @@ check_permission() {
 down_ui_and_bin_fun() {
   cd "${clash_path}"
   if [ ! -d  "${clash_path}/ui" ]; then
-    # 下载最新版Yacd-meta
-    curl -s -LJo gh-pages.zip https://mirror.ghproxy.com/https://github.com/MetaCubeX/yacd/archive/gh-pages.zip
-    unzip -qo gh-pages.zip && rm -rf gh-pages.zip && mv Yacd* Yacd
-
-    # 下载最新版metacubexd
-    curl -s -LJo gh-pages.zip https://mirror.ghproxy.com/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
-    unzip -qo gh-pages.zip && rm -rf gh-pages.zip && mv metacubexd* metacubexd
-
-    # 使用面板
-    rm -rf "${clash_path}/ui"
-    mv "${clash_path}/Yacd" "${clash_path}/ui"
+    case "${ui_name}" in
+      metacubexd)
+        # 下载最新版metacubexd
+        curl -s -LJo gh-pages.zip https://mirror.ghproxy.com/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
+        unzip -qo gh-pages.zip && rm -rf gh-pages.zip && mv metacubexd* ui
+        ;;
+      *)
+        # 默认为yacd类型
+        # 下载最新版Yacd-meta
+        curl -s -LJo gh-pages.zip https://mirror.ghproxy.com/https://github.com/MetaCubeX/yacd/archive/gh-pages.zip
+        unzip -qo gh-pages.zip && rm -rf gh-pages.zip && mv Yacd* ui
+        ;;
+    esac
   fi
 
+
+  mkdir -p "${box_path}/bin/"
   cd "${box_path}"
-  if [ ! -f  "${box_path}/bin/clash" ]; then
-    # 下载最新版mihomo(clash.meta)
-    browser_download_url=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | grep -E "browser_download_url.*-android-arm64.*.gz" | cut -f4 -d "\"")
-    log Info "$browser_download_url"
+  case "${bin_name}" in
+      sing-box)
+        if [ ! -f  "${box_path}/bin/sing-box" ]; then
+            # 下载最新版sing-box
+            browser_download_url=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep -m1 -E "browser_download_url.*-android-arm64.tar.gz" | cut -f4 -d "\"")
+            log Info "$browser_download_url"
+            if [ ! "$browser_download_url" ]; then
+              log Error '未获取到sing-box最新链接'
+              return 1
+            fi
+            curl -LJo sing-box-android-arm64.tar.gz "https://mirror.ghproxy.com/$browser_download_url"
+            tar -xzvf sing-box-android-arm64.tar.gz  sing-box*/sing-box && mv sing-box-*/sing-box "${box_path}/bin/sing-box" && rm -rf sing-box-*
+        fi
+        ;;
+      clash)
+        if [ ! -f  "${box_path}/bin/clash" ]; then
+            # 下载最新版mihomo(clash.meta)
+            browser_download_url=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | grep -m1 -E "browser_download_url.*-android-arm64.*.gz" | cut -f4 -d "\"")
+            log Info "$browser_download_url"
 
-    if [ ! "$browser_download_url" ]; then
-      log Error '未获取到mihomo(clash.meta)最新链接'
-      return 1
-    fi
+            if [ ! "$browser_download_url" ]; then
+              log Error '未获取到mihomo(clash.meta)最新链接'
+              return 1
+            fi
 
-    curl -s -LJo mihomo-android-arm64.gz "https://mirror.ghproxy.com/$browser_download_url"
-    gzip -d mihomo-android-arm64.gz && rm -rf mihomo-android-arm64.gz && mv mihomo-* "${box_path}/bin/clash"
-  fi
+            curl -s -LJo mihomo-android-arm64.gz "https://mirror.ghproxy.com/$browser_download_url"
+            gzip -d mihomo-android-arm64.gz && rm -rf mihomo-android-arm64.gz && mv mihomo-* "${box_path}/bin/clash"
+        fi
+        ;;
+      v2ray)
+        if [[ ! -f "${box_path}/bin/v2ray" ]]; then
+          # 下载最新版v2ray-core
+          browser_download_url=$(curl -s https://api.github.com/repos/v2fly/v2ray-core/releases/latest | grep -m1 -E "browser_download_url.*v2ray-android-arm64-v8a.zip\"" | cut -f4 -d "\"")
+          echo "$browser_download_url"
 
-  if [ ! -f  "${box_path}/bin/sing-box" ]; then
-    # 下载最新版sing-box
-    browser_download_url=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep -E "browser_download_url.*-android-arm64.tar.gz" | cut -f4 -d "\"")
-    log Info "$browser_download_url"
-    if [ ! "$browser_download_url" ]; then
-      log Error '未获取到sing-box最新链接'
-      return 1
-    fi
-    curl -LJo sing-box-android-arm64.tar.gz "https://mirror.ghproxy.com/$browser_download_url"
-    tar -xzvf sing-box-android-arm64.tar.gz  sing-box*/sing-box && mv sing-box-*/sing-box "${box_path}/bin/sing-box" && rm -rf sing-box-*
-  fi
+          if [ ! "$browser_download_url" ]; then
+            echo '未获取到v2ray-core最新链接'
+            exit
+          fi
+          curl -LJo v2ray-android-arm64-v8a.zip "https://mirror.ghproxy.com/$browser_download_url"
+          unzip -qo v2ray-android-arm64-v8a.zip v2ray -d "${box_path}/bin/" && rm -rf v2ray-android-arm64-v8a.zip
+        fi
+        ;;
+      xray)
+        if [[ ! -f "${box_path}/bin/xray" ]]; then
+          # 下载最新版xray
+          browser_download_url=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | grep -m1 -oE '"browser_download_url":.*"https://.*Xray-android-arm64-v8a.zip"' | cut -f4 -d "\"")
+          echo "$browser_download_url"
 
-  if [[ ! -f "${box_path}/bin/v2ray" ]]; then
-    # 下载最新版v2ray-core
-    browser_download_url=$(curl -s https://api.github.com/repos/v2fly/v2ray-core/releases/latest | grep -E "browser_download_url.*v2ray-android-arm64-v8a.zip\"" | cut -f4 -d "\"")
-    echo "$browser_download_url"
-
-    if [ ! "$browser_download_url" ]; then
-      echo '未获取到v2ray-core最新链接'
-      exit
-    fi
-    curl -LJo v2ray-android-arm64-v8a.zip "https://mirror.ghproxy.com/$browser_download_url"
-    unzip -qo v2ray-android-arm64-v8a.zip v2ray -d "${box_path}/bin/" && rm -rf v2ray-android-arm64-v8a.zip
-  fi
-
-  if [[ ! -f "${box_path}/bin/xray" ]]; then
-    # 下载最新版xray
-    browser_download_url=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | grep -m1 -oE '"browser_download_url":.*"https://.*Xray-android-arm64-v8a.zip"' | cut -f4 -d "\"")
-    echo "$browser_download_url"
-
-    if [ ! "$browser_download_url" ]; then
-      echo '未获取到xray最新链接'
-      exit
-    fi
-    curl -LJo Xray-android-arm64-v8a.zip "https://mirror.ghproxy.com/$browser_download_url"
-    unzip -qo Xray-android-arm64-v8a.zip xray -d "${box_path}/bin/" && rm -rf Xray-android-arm64-v8a.zip
-  fi
-
+          if [ ! "$browser_download_url" ]; then
+            echo '未获取到xray最新链接'
+            exit
+          fi
+          curl -LJo Xray-android-arm64-v8a.zip "https://mirror.ghproxy.com/$browser_download_url"
+          unzip -qo Xray-android-arm64-v8a.zip xray -d "${box_path}/bin/" && rm -rf Xray-android-arm64-v8a.zip
+        fi
+        ;;
+      *)
+        log Error "$1 core error, it must be one of ${bin_name_list[*]}"
+        return 2
+        ;;
+  esac
   return 0
 }
 
@@ -164,7 +178,7 @@ clash_subscribe() {
     for i in "${!subs[@]}"
     do
       sed -i "/  use:/a\    - 订阅地址${i}"  ${clash_path}/config.yaml
-      sed -i "/proxy-providers:/a\  订阅地址${i}:\n    <<: *p \n    url: \"${subs[i]}\" " ${clash_path}/config.yaml
+      sed -i "/proxy-providers:/a\  订阅地址${i}:\n    <<: *p \n    url: \"${subs[i]}\" \n\n" ${clash_path}/config.yaml
     done
 
     if [ -n "$nodes" ]; then
@@ -172,7 +186,7 @@ clash_subscribe() {
       rm -rf ${clash_path}/proxy_providers/*
       echo "$nodes" > ${clash_path}/proxy_providers/subscribe.yaml
       sed -i "/  use:/a\    - 订阅节点"  ${clash_path}/config.yaml
-      sed -i "/proxy-providers:/a\  订阅节点:\n    <<: *p \n    url: \"\" \n    path: .\/proxy_providers\/subscribe.yaml" ${clash_path}/config.yaml
+      sed -i "/proxy-providers:/a\  订阅节点:\n    <<: *p \n    url: \"\" \n    path: .\/proxy_providers\/subscribe.yaml \n\n" ${clash_path}/config.yaml
     fi     
   fi
 }

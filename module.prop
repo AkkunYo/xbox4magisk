@@ -1,7 +1,7 @@
 id=xbox
 name=xbox4magisk
-version=v4.7
-versionCode=2024020617
+version=v4.8
+versionCode=2024050923
 author=AkkunYo
 description=基于box4magisk原版和不良林整合版，进行升级并修改。添加网关共享任意第三方VPN客户端功能，支持Clash.Meta, sing-box, v2ray, xray核心，安装即用
 updateJson=https://mirror.ghproxy.com/https://raw.githubusercontent.com/AkkunYo/XBox4Magisk/main/xbox.json

@@ -1,4 +1,4 @@
 #!/system/bin/sh
 
-rm -f /data/adb/xbox
-rm -f /data/adb/service.d/xbox_service.sh
+rm -rf /data/adb/xbox
+rm -rf /data/adb/service.d/xbox_service.sh

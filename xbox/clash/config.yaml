@@ -25,7 +25,10 @@ log-level: info
 ipv6: false
 
 external-controller: 0.0.0.0:9090
-external-ui: ui
+# 配置 WEB UI 目录，使用 http://{{external-controller}}/ui 访问
+external-ui: ./ui
+# cmfa安卓未开启ui的API:故在xbox.service中命令下载
+# https://github.com/MetaCubeX/mihomo/issues/1212
 external-ui-url: "https://mirror.ghproxy.com/https://github.com/MetaCubeX/yacd/archive/gh-pages.zip"
 #external-ui-url: "https://mirror.ghproxy.com/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
 #secret: ""
@@ -110,7 +113,8 @@ proxy-groups:
   - { name: 🚀 节点选择, type: select, proxies: [ ♻️ 自动切换,🌎 全球直连 ], <<: *u }
   - { name: ♻️ 自动切换, <<: *u, tolerance: 2, type: url-test }
   - { name: ♻️ 手动切换, type: select, proxies: [ 🚀 节点选择,🌎 全球直连 ], <<: *u }
-  - { name: 🎬 科学服务, type: select, proxies: [ 🎯 总模式,♻️ 自动切换,♻️ 手动切换,🌎 全球直连 ] }
+  - { name: 🎬 科学上网, type: select, proxies: [ 🎯 总模式,♻️ 自动切换,♻️ 手动切换,🌎 全球直连 ] }
+  - { name: Ⓜ️ DNS服务, type: select, proxies: [ 🎯 总模式,♻️ 自动切换,♻️ 手动切换,🌎 全球直连 ] }
   - { name: 📹 奈飞视频, type: select, proxies: [ 🎯 总模式,♻️ 自动切换,♻️ 手动切换,🌎 全球直连 ] }
   - { name: 📢 谷歌服务, type: select, proxies: [ 🎯 总模式,♻️ 自动切换,♻️ 手动切换,🌎 全球直连 ] }
   - { name: Ⓜ️ 微软服务, type: select, proxies: [ 🎯 总模式,♻️ 自动切换,♻️ 手动切换,🌎 全球直连 ] }
@@ -122,34 +126,22 @@ proxy-groups:
   - { name: 🌎 全球直连, type: select, proxies: [ DIRECT ] }
 
 rules:
-  - AND,((PROCESS-NAME,clash),(NOT,((IN-TYPE,inner)))),REJECT
+  - AND,((RULE-SET,anti_ad_domain),(NOT,((RULE-SET,anti_ad_white_domain)))),REJECT
   - DST-PORT,53,DNS_Hijack
   - GEOIP,lan,🌎 全球直连,no-resolve
   - DOMAIN-SUFFIX,zkyml.com,🌎 全球直连
   - PROCESS-NAME,com.zhiliaoapp.musically,📸 国际抖音
   - PROCESS-NAME,com.ss.android.ugc.aweme,📷 中国抖音
 
+  - AND,((RULE-SET,google_domain),(RULE-SET,google_ip)),📢 谷歌服务
+  - AND,((RULE-SET,telegram_domain),(RULE-SET,telegram_ip)),📢 谷歌服务
+  - AND,((RULE-SET,twitter_domain),(RULE-SET,twitter_ip)),📢 谷歌服务
+  - AND,((RULE-SET,netflix_domain),(RULE-SET,netflix_ip)),📹 奈飞视频
+  - RULE-SET,youtube_domain,📢 谷歌服务
   - RULE-SET,apple_domain,🍎 苹果服务
-  - RULE-SET,openai_domain,🎬 科学服务
-
-  - RULE-SET,github_domain,🎯 总模式
-  - RULE-SET,twitter_domain,🎯 总模式
-  - RULE-SET,youtube_domain,🎬 科学服务
-  - RULE-SET,google_domain,📢 谷歌服务
-  - RULE-SET,telegram_domain,🎬 科学服务
-  - RULE-SET,netflix_domain,📹 奈飞视频
-  - RULE-SET,spotify_domain,🎯 总模式
-  - RULE-SET,pixiv_domain,🎯 总模式
-  - RULE-SET,cn_domain,🌎 全球直连
+  - RULE-SET,github_domain,🎬 科学上网
+  - AND,((RULE-SET,cn_domain),(RULE-SET,cn_ip)),🌎 全球直连
   - RULE-SET,geolocation-!cn,🐋 漏网之鱼
-
-  - RULE-SET,google_ip,📢 谷歌服务
-  - RULE-SET,netflix_ip,📹 奈飞视频
-  - RULE-SET,telegram_ip,🎬 科学服务
-  - RULE-SET,twitter_ip,🎯 总模式
-  - RULE-SET,cn_ip,🌎 全球直连
-  - RULE-SET,antiadwhite_domain,🌎 全球直连
-  - RULE-SET,antiad_domain,🛑 广告拦截
 
   - GEOSITE,category-ads-all,🛑 广告拦截
   - GEOSITE,CN,🌎 全球直连
@@ -184,19 +176,10 @@ rule-providers:
     url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com//MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.yaml"
   apple_domain:
     <<: *domain
-    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Apple.yaml"
-  openai_domain:
-    <<: *domain
-    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MoGuangYu/rules/main/Home/Openai.yaml"
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com//MetaCubeX/meta-rules-dat/meta/geo/geosite/apple.yaml"
   netflix_domain:
     <<: *domain
     url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com//MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.yaml"
-  spotify_domain:
-    <<: *domain
-    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com//MetaCubeX/meta-rules-dat/meta/geo/geosite/spotify.yaml"
-  pixiv_domain:
-    <<: *domain
-    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com//MetaCubeX/meta-rules-dat/meta/geo/geosite/pixiv.yaml"
   geolocation-!cn:
     <<: *domain
     url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com//MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.yaml"
@@ -204,13 +187,13 @@ rule-providers:
   # anti-AD 广告拦截规则
   # https://github.com/privacy-protection-tools/anti-AD
   # 如果误杀率高请自行更换
-  antiad_domain:
+  anti_ad_domain:
     <<: *domain
-    url: "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-clash.yaml?"
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-clash.yaml?"
   # anti-AD 白名单规则
-  antiadwhite_domain:
+  anti_ad_white_domain:
     <<: *domain
-    url: "https://raw.githubusercontent.com/privacy-protection-tools/dead-horse/master/anti-ad-white-for-clash.yaml?"
+    url: "https://mirror.ghproxy.com/https://raw.githubusercontent.com/privacy-protection-tools/dead-horse/master/anti-ad-white-for-clash.yaml?"
 
   cn_ip:
     <<: *ip
