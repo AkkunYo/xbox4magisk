@@ -1,7 +1,7 @@
-id=box4
+id=box4magisk
 name=box4magisk
 version=v5.1
-versionCode=2024091613
-author=CHIZI-0618
-description=Use sing-box, clash, v2ray, xray tunnel proxy on Android devices.
-updateJson=https://raw.githubusercontent.com/CHIZI-0618/box4magisk/main/box4.json
+versionCode=2026051801
+author=AkkunYo
+description=基于box4magisk原版和不良林整合版，进行升级并修改。添加网关共享任意第三方VPN客户端功能，支持Clash.Meta, sing-box, v2ray, xray核心，安装即用
+updateJson=https://cdn.akaere.online/https://raw.githubusercontent.com/AkkunYo/XBox4Magisk/main/box4.json

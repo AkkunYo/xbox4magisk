@@ -66,6 +66,85 @@ check_permission() {
   fi
 }
 
+down_bin_fun() {
+  # 下载二进制文件
+  mkdir -p "${box_path}/bin/"
+  cd "${box_path}"
+  case "${bin_name}" in
+    sing-box)
+      if [ ! -f "${box_path}/bin/sing-box" ]; then
+        log Info "下载 sing-box..."
+        browser_download_url=$(curl -s https://cdn.akaere.online/https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep -m1 -E "browser_download_url.*-android-arm64.tar.gz" | cut -f4 -d "\"")
+        if [ -z "$browser_download_url" ]; then
+          log Error "未获取到 sing-box 最新链接"
+          return 1
+        fi
+        log Info "$browser_download_url"
+        curl -LJo sing-box-android-arm64.tar.gz "https://cdn.akaere.online/$browser_download_url"
+        tar -xzf sing-box-android-arm64.tar.gz sing-box*/sing-box && mv sing-box-*/sing-box "${box_path}/bin/sing-box" && rm -rf sing-box-*
+      fi
+      ;;
+    clash|mihomo)
+      if [ ! -f "${box_path}/bin/${bin_name}" ]; then
+        log Info "下载 mihomo (clash.meta)..."
+        browser_download_url=$(curl -s https://cdn.akaere.online/https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | grep -m1 -E "browser_download_url.*-android-arm64.*.gz" | cut -f4 -d "\"")
+        if [ -z "$browser_download_url" ]; then
+          log Error "未获取到 mihomo 最新链接"
+          return 1
+        fi
+        log Info "$browser_download_url"
+        curl -s -LJo mihomo-android-arm64.gz "https://cdn.akaere.online/$browser_download_url"
+        gzip -d mihomo-android-arm64.gz && mv mihomo-* "${box_path}/bin/${bin_name}"
+      fi
+      ;;
+    v2ray)
+      if [ ! -f "${box_path}/bin/v2ray" ]; then
+        log Info "下载 v2ray-core..."
+        browser_download_url=$(curl -s https://cdn.akaere.online/https://api.github.com/repos/v2fly/v2ray-core/releases/latest | grep -m1 -E "browser_download_url.*v2ray-android-arm64-v8a.zip\"" | cut -f4 -d "\"")
+        if [ -z "$browser_download_url" ]; then
+          log Error "未获取到 v2ray-core 最新链接"
+          return 1
+        fi
+        log Info "$browser_download_url"
+        curl -LJo v2ray-android-arm64-v8a.zip "https://cdn.akaere.online/$browser_download_url"
+        unzip -qo v2ray-android-arm64-v8a.zip v2ray -d "${box_path}/bin/" && rm -rf v2ray-android-arm64-v8a.zip
+      fi
+      ;;
+    xray)
+      if [ ! -f "${box_path}/bin/xray" ]; then
+        log Info "下载 xray..."
+        browser_download_url=$(curl -s https://cdn.akaere.online/https://api.github.com/repos/XTLS/Xray-core/releases/latest | grep -m1 -oE '"browser_download_url":.*"https://.*Xray-android-arm64-v8a.zip"' | cut -f4 -d "\"")
+        if [ -z "$browser_download_url" ]; then
+          log Error "未获取到 xray 最新链接"
+          return 1
+        fi
+        log Info "$browser_download_url"
+        curl -LJo Xray-android-arm64-v8a.zip "https://cdn.akaere.online/$browser_download_url"
+        unzip -qo Xray-android-arm64-v8a.zip xray -d "${box_path}/bin/" && rm -rf Xray-android-arm64-v8a.zip
+      fi
+      ;;
+    hysteria)
+      if [ ! -f "${box_path}/bin/hysteria" ]; then
+        log Info "下载 hysteria..."
+        browser_download_url=$(curl -s https://cdn.akaere.online/https://api.github.com/repos/apernet/hysteria/releases/latest | grep -m1 -E "browser_download_url.*-android-arm64" | cut -f4 -d "\"")
+        if [ -z "$browser_download_url" ]; then
+          log Error "未获取到 hysteria 最新链接"
+          return 1
+        fi
+        log Info "$browser_download_url"
+        curl -LJo hysteria-android-arm64 "https://cdn.akaere.online/$browser_download_url"
+        mv hysteria-android-arm64 "${box_path}/bin/hysteria"
+        chmod +x "${box_path}/bin/hysteria"
+      fi
+      ;;
+    *)
+      log Error "$bin_name core error, it must be one of ${bin_name_list[*]}"
+      return 2
+      ;;
+  esac
+  return 0
+}
+
 start_bin() {
   ulimit -SHn 1000000
   case "${bin_name}" in
@@ -166,6 +245,9 @@ display_bin_status() {
 }
 
 start_service() {
+  down_bin_fun
+  # 清理旧日志
+  rm -f ${run_path}/check.log ${run_path}/error_${bin_name}.log ${run_path}/run.log ${run_path}/run_error.log >> /dev/null 2>&1
   if check_permission ; then
     log Info "${bin_name} will be started with the ${box_user_group} user group."
     if start_bin && wait_bin_listen ; then
